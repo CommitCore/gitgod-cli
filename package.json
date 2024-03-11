@@ -1,0 +1,19 @@
+{
+  "name": "gitgod",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Gauravst/gitgod.git"
+  },
+  "author": "Gaurav Singh Tangariya",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Gauravst/gitgod/issues"
+  },
+  "homepage": "https://github.com/Gauravst/gitgod#readme"
+}
