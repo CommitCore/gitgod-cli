@@ -12,7 +12,7 @@ const find = (str, matchStr) => {
 
 const runCommand = (command) => {
   return new Promise((resolve) => {
-    exec(command, (error, stdout, stderr) => {
+    exec(command, { cwd: process.cwd() }, (error, stdout, stderr) => {
       resolve({ error, stdout, stderr });
     });
   });
@@ -52,7 +52,7 @@ function isSshUrl(url) {
 const gitPush = async () => {
   const message = await askQuestion("Enter Commit Message :- ");
   await runCommand("git add .");
-  await runCommand(`git commit -m ${message}`);
+  await gitCommit(message);
   console.log("Pushing changes to the repo...");
   await runCommand("git push");
 };
@@ -62,40 +62,69 @@ const gitPull = async () => {
   await runCommand("git pull");
 };
 
+const gitCommit = async (message) => {
+  await runCommand(`git commit -m "${message}"`);
+};
+
+const setGitUsingClone = async (error) => {
+  if (error && error.message && find(error.message, "not a git repository")) {
+    const github = await askQuestion(
+      "Enter Github Repository URL/HTTPS/SSH :-",
+    );
+    const ssh = await convertToSsh(github);
+
+    console.log("Git Initializing...");
+    console.log("Fetching repo data..");
+
+    await runCommand("git init");
+    await runCommand("git add .");
+
+    await gitCommit("commit by gitgod");
+    await runCommand(`git remote add origin ${ssh}`);
+    await runCommand("git fetch");
+
+    console.log("Setting up a git remote...");
+    await runCommand("git branch --set-upstream-to=origin/main main");
+    await runCommand("git config pull.rebase false");
+    await runCommand("git pull --allow-unrelated-histories --no-edit");
+
+    console.log("Git Pulling repo file");
+    await gitPull();
+    await runCommand("git push");
+    console.log("Git repository synced Successfully.");
+  }
+};
+
+const gitSync = async () => {
+  const message = await askQuestion("Enter commit message :-");
+  console.log("git syncing..");
+
+  await runCommand("git init");
+  await runCommand("git add .");
+  await gitCommit(message);
+
+  await runCommand("git branch --set-upstream-to=origin/main main");
+
+  await gitPull();
+  await runCommand("git push");
+  console.log("Git Synced successfully.");
+};
+
 const main = async () => {
-  const command = "git status";
-  const { error, stdout, stderr } = await runCommand(command);
+  let command = "git status";
+  let { error, stdout, stderr } = await runCommand(command);
 
   if (error) {
-    if (find(error.message, "not a git repository")) {
-      const github = await askQuestion(
-        "Enter Github Repository URL/HTTPS/SSH :- ",
-      );
-      const ssh = await convertToSsh(github);
-
-      console.log("Git Initializing...");
-      await runCommand("git init");
-
-      console.log("Setting up a git remote...");
-      await runCommand(`git remote add origin ${ssh}`);
-
-      console.log("Fetching repo data..");
-      await runCommand("git fetch origin");
-      await runCommand("git checkout -b main origin/main");
-
-      console.log("Setting Default Values...");
-      await runCommand("git branch --set-upstream-to=origin/main main");
-
-      await gitPull();
-      await gitPush();
-    }
+    await setGitUsingClone(error);
+  } else {
+    await gitSync();
   }
-  //console.log(`Git output: ${stdout}`);
+
   if (stderr) {
-    //console.error(`Git error: ${stderr}`);
   }
 
   if (stdout) {
   }
 };
+
 main();
