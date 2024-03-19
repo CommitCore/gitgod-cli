@@ -1,0 +1,30 @@
+name: Publish to npm
+
+on:
+  push:
+    branches: [ main ]  # You can adjust this to trigger on specific branches
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest  # You can adjust this to your preferred OS
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 16
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16  # You can adjust this to your project's Node.js version
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Publish to npm (no build)
+        uses: JS-DevTools/npm-publish@v3
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
+          package: ./  # Publish the contents of the current directory
+
+          # Optional: You can uncomment these lines to specify access level (public)
+          # access: public  # For public access
+          # strict-publish: false  # Allow publishing even if there are warnings
