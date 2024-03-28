@@ -59,7 +59,7 @@ const gitPush = async () => {
 
 const gitPull = async () => {
   console.log("Pulling changes from repo...");
-  await runCommand("git pull");
+  await runCommand("git pull -u origin main");
 };
 
 const gitCommit = async (message) => {
