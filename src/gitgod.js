@@ -82,6 +82,7 @@ const setGitUsingClone = async (error) => {
     await gitCommit("commit by gitgod");
     await runCommand(`git remote add origin ${ssh}`);
     await runCommand("git fetch");
+    await runCommand("git branch -M main");
 
     console.log("Setting up a git remote...");
     await runCommand("git branch --set-upstream-to=origin/main main");
@@ -90,7 +91,7 @@ const setGitUsingClone = async (error) => {
 
     console.log("Git Pulling repo file");
     await gitPull();
-    await runCommand("git push");
+    await runCommand("git push -u origin main");
     console.log("Git repository synced Successfully.");
   }
 };
@@ -106,7 +107,7 @@ const gitSync = async () => {
   await runCommand("git branch --set-upstream-to=origin/main main");
 
   await gitPull();
-  await runCommand("git push");
+  await runCommand("git push -u origin main");
   console.log("Git Synced successfully.");
 };
 
