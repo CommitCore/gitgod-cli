@@ -57,20 +57,38 @@ const gitPush = async () => {
   await runCommand("git push");
 };
 
-const gitPull = async () => {
+const gitPull = async (where, branch) => {
   console.log("Pulling changes from repo...");
-  await runCommand("git pull -u origin main");
+  await runCommand(`git fetch ${where}`);
+  await runCommand(`git pull ${where}, ${branch}`);
+};
+
+const gitMerge = async (where, branch) => {
+  console, log(`mergeing from ${where}/${branch}`);
+  await gitCommit(where, branch);
+  await runCommand(`git fetch ${where}`);
+  await runCommand(`git merge ${origin}/${branch}`);
 };
 
 const gitCommit = async (message) => {
+  await runCommand(`git add .`);
   await runCommand(`git commit -m "${message}"`);
+};
+
+const gitSync = async (where, branch) => {
+  const message = await askQuestion("Enter commit message :-");
+  console.log("git syncing..");
+
+  await gitCommit(message);
+  await gitMerge(where, branch);
+
+  await runCommand(`git push ${where} ${branch}`);
+  console.log("Git Synced successfully.");
 };
 
 const setGitUsingClone = async (error) => {
   if (error && error.message && find(error.message, "not a git repository")) {
-    const github = await askQuestion(
-      "Enter Github Repository URL/HTTPS/SSH :-",
-    );
+    const github = await askQuestion("Enter Github Repository SSH :-");
     const ssh = await convertToSsh(github);
 
     console.log("Git Initializing...");
@@ -81,34 +99,23 @@ const setGitUsingClone = async (error) => {
 
     await gitCommit("commit by gitgod");
     await runCommand(`git remote add origin ${ssh}`);
-    await runCommand("git fetch");
+    await runCommand("git fetch origin");
     await runCommand("git branch -M main");
 
     console.log("Setting up a git remote...");
     await runCommand("git branch --set-upstream-to=origin/main main");
+    // merge git from origin
+    await runCommand("git merge origin/main");
+
     await runCommand("git config pull.rebase false");
     await runCommand("git pull --allow-unrelated-histories --no-edit");
 
     console.log("Git Pulling repo file");
-    await gitPull();
+
+    await runCommand("git merge origin main");
     await runCommand("git push -u origin main");
     console.log("Git repository synced Successfully.");
   }
-};
-
-const gitSync = async () => {
-  const message = await askQuestion("Enter commit message :-");
-  console.log("git syncing..");
-
-  await runCommand("git init");
-  await runCommand("git add .");
-  await gitCommit(message);
-
-  await runCommand("git branch --set-upstream-to=origin/main main");
-
-  await gitPull();
-  await runCommand("git push -u origin main");
-  console.log("Git Synced successfully.");
 };
 
 const main = async () => {
